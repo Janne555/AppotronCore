@@ -26,23 +26,35 @@ public class IngredientDao {
     }
 
     public Ingredient store(Ingredient ingredient) throws SQLException {
-        int update = db.update("INSERT INTO ingredient(globalreference_id, recipe_id, mass) VALUES(?,?,?)", true,
-                ingredient.getGlobalReferenceId(), ingredient.getRecipeId(), ingredient.getMass());
+        int update = db.update("INSERT INTO ingredient(globalreference_id, ingredientcollection_id, mass) VALUES(?,?,?)", true,
+                ingredient.getGlobalReferenceId(), ingredient.getIngredientCollectionId(), ingredient.getMass());
         ingredient.setId(update);
         return ingredient;
     }
 
-    public List<Ingredient> findAllByRecipeId(int recipeId) throws SQLException {
-        return db.queryAndCollect("select (calories * mass) as calories, (carbohydrate * mass) as carbohydrate, (fat * mass) as fat, (protein * mass) as protein, i.recipe_id as recipeid, i.globalreference_id as globalreferenceid, mass, i.id as ingredientid from ingredient i, foodstuffmeta f where i.globalreference_id = f.globalreference_id AND i.recipe_id = ?", rs -> {
-            return new Ingredient(rs.getInt("ingredientid"),
-                    rs.getInt("globalreferenceid"),
-                    rs.getInt("recipeid"),
-                    rs.getFloat("mass"),
-                    rs.getFloat("calories"),
-                    rs.getFloat("carbohydrate"),
-                    rs.getFloat("fat"),
-                    rs.getFloat("protein"),
-                    foodDao.findOne(rs.getInt("globalreferenceid")));
-        }, recipeId);
+    public Ingredient findOne(int id) throws SQLException {
+        List<Ingredient> list = db.queryAndCollect("SELECT * FROM ingredient WHERE id = ?", rs -> {
+            return new Ingredient(rs, foodDao.findOne(rs.getInt("globalreference_id")));
+        }, id);
+        
+        if (list.isEmpty()) {
+            return null;
+        }
+        
+        return list.get(0);
+    }
+
+    public List<Ingredient> findAllByIngredientCollectionId(int ingredientCollectionId) throws SQLException {
+        return db.queryAndCollect("SELECT * FROM ingredient WHERE ingredientcollection_id = ?", rs -> {
+            return new Ingredient(rs, foodDao.findOne(rs.getInt("globalreference_id")));
+        }, ingredientCollectionId);
+    }
+
+    public void delete(int id) throws SQLException {
+        db.update("DELETE FROM ingredient WHERE id = ?", false, id);
+    }
+
+    public void update(Ingredient ingredient) throws SQLException {
+        db.update("UPDATE ingredient SET globalreference_id = ?, mass = ? WHERE id = ?", false, ingredient.getGlobalReferenceId(), ingredient.getMass(), ingredient.getId());
     }
 }

@@ -5,6 +5,8 @@
  */
 package storables;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -19,15 +21,22 @@ public class Foodstuff {
     private String identifier;
     private String producer;
     private String location;
-    private float calories;
-    private float carbohydrate;
-    private float fat;
-    private float protein;
     private int globalReferenceId;
     private int foodstuffMetaId;
     private int id;
     private Timestamp expiration;
     private Timestamp date;
+    private float calories;
+    private float carbohydrate;
+    private float fat;
+    private float protein;
+    private float iron;
+    private float sodium;
+    private float potassium;
+    private float calcium;
+    private float vitB12;
+    private float vitC;
+    private float vitD;
 
     public Foodstuff(String name, String identifier, String producer, String location, float calories, float carbohydrate, float fat, float protein, int globalReference, int foodstuffMeta, int id, Timestamp expiration, Timestamp date) {
         this.name = name;
@@ -43,6 +52,110 @@ public class Foodstuff {
         this.id = id;
         this.expiration = expiration;
         this.date = date;
+    }
+
+    public Foodstuff(String name, String identifier, String producer, String location, int globalReferenceId, int foodstuffMetaId, int id, Timestamp expiration, Timestamp date, float calories, float carbohydrate, float fat, float protein, float iron, float sodium, float potassium, float calcium, float vitB12, float vitC, float vitD) {
+        this.name = name;
+        this.identifier = identifier;
+        this.producer = producer;
+        this.location = location;
+        this.globalReferenceId = globalReferenceId;
+        this.foodstuffMetaId = foodstuffMetaId;
+        this.id = id;
+        this.expiration = expiration;
+        this.date = date;
+        this.calories = calories;
+        this.carbohydrate = carbohydrate;
+        this.fat = fat;
+        this.protein = protein;
+        this.iron = iron;
+        this.sodium = sodium;
+        this.potassium = potassium;
+        this.calcium = calcium;
+        this.vitB12 = vitB12;
+        this.vitC = vitC;
+        this.vitD = vitD;
+    }
+
+    public Foodstuff(ResultSet rs, boolean hasItem) throws SQLException {
+        this.name = rs.getString("name");
+        this.identifier = rs.getString("identifier");
+        this.producer = rs.getString("producer");
+        this.globalReferenceId = rs.getInt("globalreferenceid");
+        this.foodstuffMetaId = rs.getInt("foodstuffmetaid");
+        this.calories = rs.getFloat("calories");
+        this.carbohydrate = rs.getFloat("carbohydrate");
+        this.fat = rs.getFloat("fat");
+        this.protein = rs.getFloat("protein");
+        this.calcium = rs.getFloat("calcium");
+        this.iron = rs.getFloat("iron");
+        this.potassium = rs.getFloat("potassium");
+        this.sodium = rs.getFloat("sodium");
+        this.vitB12 = rs.getFloat("vitb12");
+        this.vitC = rs.getFloat("vitc");
+        this.vitD = rs.getFloat("vitd");
+        if (hasItem) {
+            this.location = rs.getString("location");
+            this.id = rs.getInt("id");
+            this.expiration = rs.getTimestamp("expiration");
+            this.date = rs.getTimestamp("date");
+        }
+    }
+
+    public float getIron() {
+        return iron;
+    }
+
+    public void setIron(float iron) {
+        this.iron = iron;
+    }
+
+    public float getSodium() {
+        return sodium;
+    }
+
+    public void setSodium(float sodium) {
+        this.sodium = sodium;
+    }
+
+    public float getPotassium() {
+        return potassium;
+    }
+
+    public void setPotassium(float potassium) {
+        this.potassium = potassium;
+    }
+
+    public float getCalcium() {
+        return calcium;
+    }
+
+    public void setCalcium(float calcium) {
+        this.calcium = calcium;
+    }
+
+    public float getVitB12() {
+        return vitB12;
+    }
+
+    public void setVitB12(float vitB12) {
+        this.vitB12 = vitB12;
+    }
+
+    public float getVitC() {
+        return vitC;
+    }
+
+    public void setVitC(float vitC) {
+        this.vitC = vitC;
+    }
+
+    public float getVitD() {
+        return vitD;
+    }
+
+    public void setVitD(float vitD) {
+        this.vitD = vitD;
     }
 
     public String getLocation() {

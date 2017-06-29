@@ -114,5 +114,10 @@ public class Container {
         setFat(Math.round(getMass()));
         setProtein(Math.round(getProtein()));
     }
-
+    
+    
+    @Override
+    public String toString() {
+        return "calories: " + getCalories() + ", carbohydrate: " + getCarbohydrate() + ", fat: " + getFat() + ", protein: " + getProtein();
+    }
 }

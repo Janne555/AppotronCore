@@ -1,1 +1,6 @@
 /target/
+/nbproject/
+/src/main/java/ztrash/
+/src/main/java/daos/exomemory/
+/src/main/java/storables/Task.java
+/src/test/java/utilities/

@@ -5,6 +5,8 @@
  */
 package storables.mealdiary;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import storables.Foodstuff;
 
 /**
@@ -12,25 +14,27 @@ import storables.Foodstuff;
  * @author Janne
  */
 public class Ingredient {
+
     private int id;
+    //TODO have globalreferenceid removed from here and only have it in foodstuff
     private int globalReferenceId;
-    private int recipeId;
+    private int ingredientCollectionId;
     private float mass;
-    private float calories;
-    private float carbohydrate;
-    private float fat;
-    private float protein;
     private Foodstuff foodstuff;
 
-    public Ingredient(int id, int globalReferenceId, int recipeId, float mass, float calories, float carbohydrate, float fat, float protein, Foodstuff foodstuff) {
+    public Ingredient(int id, int globalReferenceId, int ingredientCollectionId, float mass, Foodstuff foodstuff) {
         this.id = id;
         this.globalReferenceId = globalReferenceId;
-        this.recipeId = recipeId;
+        this.ingredientCollectionId = ingredientCollectionId;
         this.mass = mass;
-        this.calories = calories;
-        this.carbohydrate = carbohydrate;
-        this.fat = fat;
-        this.protein = protein;
+        this.foodstuff = foodstuff;
+    }
+
+    public Ingredient(ResultSet rs, Foodstuff foodstuff) throws SQLException {
+        this.id = rs.getInt("id");
+        this.globalReferenceId = rs.getInt("globalreference_id");
+        this.ingredientCollectionId = rs.getInt("ingredientcollection_id");
+        this.mass = rs.getFloat("mass");
         this.foodstuff = foodstuff;
     }
 
@@ -50,12 +54,12 @@ public class Ingredient {
         this.globalReferenceId = globalReferenceId;
     }
 
-    public int getRecipeId() {
-        return recipeId;
+    public int getIngredientCollectionId() {
+        return ingredientCollectionId;
     }
 
-    public void setRecipeId(int recipeId) {
-        this.recipeId = recipeId;
+    public void setIngredientCollectionId(int ingredientCollectionId) {
+        this.ingredientCollectionId = ingredientCollectionId;
     }
 
     public float getMass() {
@@ -67,35 +71,47 @@ public class Ingredient {
     }
 
     public float getCalories() {
-        return calories;
-    }
-
-    public void setCalories(float calories) {
-        this.calories = calories;
+        return foodstuff.getCalories() * mass;
     }
 
     public float getCarbohydrate() {
-        return carbohydrate;
-    }
-
-    public void setCarbohydrate(float carbohydrate) {
-        this.carbohydrate = carbohydrate;
+        return foodstuff.getCarbohydrate()* mass;
     }
 
     public float getFat() {
-        return fat;
-    }
-
-    public void setFat(float fat) {
-        this.fat = fat;
+        return foodstuff.getFat()* mass;
     }
 
     public float getProtein() {
-        return protein;
+        return foodstuff.getProtein()* mass;
     }
 
-    public void setProtein(float protein) {
-        this.protein = protein;
+    public float getIron() {
+        return foodstuff.getIron()* mass;
+    }
+
+    public float getSodium() {
+        return foodstuff.getSodium()* mass;
+    }
+
+    public float getPotassium() {
+        return foodstuff.getPotassium()* mass;
+    }
+
+    public float getCalcium() {
+        return foodstuff.getCalcium()* mass;
+    }
+
+    public float getVitB12() {
+        return foodstuff.getVitB12()* mass;
+    }
+
+    public float getVitC() {
+        return foodstuff.getVitC()* mass;
+    }
+
+    public float getVitD() {
+        return foodstuff.getVitD()* mass;
     }
 
     public Foodstuff getFoodstuff() {

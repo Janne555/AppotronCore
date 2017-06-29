@@ -25,8 +25,8 @@ public class MealDao {
     }
 
     public Meal store(Meal meal) throws SQLException {
-        int update = db.update("INSERT INTO Meal(person_identifier, date, deleted) VALUES(?,?,?)", true,
-                meal.getUserId(),
+        int update = db.update("INSERT INTO meal(person_identifier, date, deleted) VALUES(?,?,?)", true,
+                meal.getUser().getId(),
                 meal.getDate(),
                 false);
 

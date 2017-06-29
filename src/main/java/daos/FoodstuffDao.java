@@ -18,12 +18,21 @@ import storables.User;
  */
 public class FoodstuffDao {
 
-    private Database db;
-    private PermissionDao perDao;
+    private final String columnsMain;
+    private final String columnsItem;
+    private final String tsvector;
+
+    private final Database db;
+    private final PermissionDao perDao;
 
     public FoodstuffDao(Database db) {
         this.db = db;
         this.perDao = new PermissionDao(db);
+        this.columnsMain = "g.name as name, g.identifier as identifier, g.type as type, f.producer as producer, f.calories as calories, f.carbohydrate as carbohydrate, f.fat as fat, f.protein as protein, f.iron as iron, f.sodium as sodium, f.potassium as potassium, f.calcium as calcium, f.vitb12 as vitb12, f.vitc as vitc, f.vitd as vitd, g.id as globalreferenceid, f.id as foodstuffmetaid";
+        
+        this.columnsItem = "i.date as date, i.expiration as expiration, i.location as location, i.id as id";
+
+        this.tsvector = "to_tsvector(g.identifier) || to_tsvector(g.type) || to_tsvector(f.producer) || to_tsvector(g.name) as document";
     }
 
     public Foodstuff store(Foodstuff foodstuff, User user) throws SQLException {
@@ -46,8 +55,8 @@ public class FoodstuffDao {
         }, foodstuff.getGlobalReferenceId());
 
         if (foodstuffMetaIdList.isEmpty()) {
-            int update = db.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein) VALUES(?, ?, ?, ?, ?, ?)", true,
-                    foodstuff.getGlobalReferenceId(), foodstuff.getProducer(), foodstuff.getCalories(), foodstuff.getCarbohydrate(), foodstuff.getFat(), foodstuff.getProtein());
+            int update = db.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein, iron, sodium, potassium, calcium, vitb12, vitc, vitd) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", true,
+                    foodstuff.getGlobalReferenceId(), foodstuff.getProducer(), foodstuff.getCalories(), foodstuff.getCarbohydrate(), foodstuff.getFat(), foodstuff.getProtein(), foodstuff.getIron(), foodstuff.getSodium(), foodstuff.getPotassium(), foodstuff.getCalcium(), foodstuff.getVitB12(), foodstuff.getVitC(), foodstuff.getVitD());
             foodstuff.setFoodstuffMetaId(update);
         } else if (foodstuffMetaIdList.size() > 1) {
             throw new VerifyError("found more than one row with global reference id: " + foodstuff.getGlobalReferenceId());
@@ -71,25 +80,7 @@ public class FoodstuffDao {
             terms[i] = searchWords[i - 1];
         }
 
-        String sql = "SELECT DISTINCT ON (id) * FROM (SELECT "
-                + "g.identifier as identifier, "
-                + "g.type as type, "
-                + "g.name as name, "
-                + "f.producer as producer, "
-                + "f.calories as calories, "
-                + "f.carbohydrate as carbohydrate, "
-                + "f.fat as fat, "
-                + "f.protein as protein, "
-                + "i.location as location, "
-                + "i.date as date, "
-                + "i.expiration as expiration, "
-                + "g.id as globalreferenceid, "
-                + "i.id as id, "
-                + "f.id as foodstuffmetaid, "
-                + "to_tsvector(g.identifier) || "
-                + "to_tsvector(g.type) || "
-                + "to_tsvector(f.producer) || "
-                + "to_tsvector(i.location) as document "
+        String sql = "SELECT DISTINCT ON (id) * FROM (SELECT " + this.columnsMain + ", " + this.columnsItem + ", " + this.tsvector + " "
                 + "FROM globalreference as g, item as i, foodstuffmeta as f, permission as p "
                 + "WHERE g.id = i.globalreference_id "
                 + "AND f.globalreference_id = g.id "
@@ -103,40 +94,14 @@ public class FoodstuffDao {
         }
 
         List<Foodstuff> items = db.queryAndCollect(sql, rs -> {
-            return new Foodstuff(rs.getString("name"),
-                    rs.getString("identifier"),
-                    rs.getString("producer"),
-                    rs.getString("location"),
-                    rs.getFloat("calories"),
-                    rs.getFloat("carbohydrate"),
-                    rs.getFloat("fat"),
-                    rs.getFloat("protein"),
-                    rs.getInt("globalreferenceid"),
-                    rs.getInt("foodstuffmetaid"),
-                    rs.getInt("id"),
-                    rs.getTimestamp("expiration"),
-                    rs.getTimestamp("date"));
+            return new Foodstuff(rs, true);
         }, terms);
 
         return items;
     }
 
     public List<Foodstuff> searchGlobal(Object... searchWords) throws SQLException {
-        String sql = "SELECT * FROM (SELECT "
-                + "g.identifier as identifier, "
-                + "g.type as type, "
-                + "g.name as name, "
-                + "f.producer as producer, "
-                + "f.calories as calories, "
-                + "f.carbohydrate as carbohydrate, "
-                + "f.fat as fat, "
-                + "f.protein as protein, "
-                + "g.id as globalreferenceid, "
-                + "f.id as foodstuffmetaid, "
-                + "to_tsvector(g.identifier) || "
-                + "to_tsvector(g.type) || "
-                + "to_tsvector(f.producer) || "
-                + "to_tsvector(g.name) as document "
+        String sql = "SELECT * FROM (SELECT " + this.columnsMain + ", " + this.tsvector + " "
                 + "FROM globalreference as g, foodstuffmeta as f "
                 + "WHERE f.globalreference_id = g.id) as mainquery "
                 + "WHERE mainquery.document @@ to_tsquery(?)";
@@ -146,26 +111,15 @@ public class FoodstuffDao {
         }
 
         List<Foodstuff> items = db.queryAndCollect(sql, rs -> {
-            return new Foodstuff(rs.getString("name"),
-                    rs.getString("identifier"),
-                    rs.getString("producer"),
-                    null,
-                    rs.getFloat("calories"),
-                    rs.getFloat("carbohydrate"),
-                    rs.getFloat("fat"),
-                    rs.getFloat("protein"),
-                    rs.getInt("globalreferenceid"),
-                    rs.getInt("foodstuffmetaid"),
-                    0,
-                    null,
-                    null);
+            return new Foodstuff(rs, false);
         }, searchWords);
 
         return items;
     }
 
     public List<Foodstuff> searchGlobal(boolean sortPopular, Object... searchWords) throws SQLException {
-        String sql = "SELECT * FROM (SELECT c.uses as uses, g.identifier as identifier, g.type as type, g.name as name, f.producer as producer, f.calories as calories, f.carbohydrate as carbohydrate, f.fat as fat, f.protein as protein, g.id as globalreferenceid, f.id as foodstuffmetaid, to_tsvector(g.identifier) || to_tsvector(g.type) || to_tsvector(f.producer) || to_tsvector(g.name) as document FROM globalreference as g, foodstuffmeta as f LEFT JOIN (SELECT count(c.globalreference_id) as uses, c.globalreference_id as gid FROM mealcomponent c GROUP BY c.globalreference_id) as c ON f.globalreference_id = c.gid WHERE f.globalreference_id = g.id) as mainquery WHERE mainquery.document @@ to_tsquery(?)";
+        String sql = "SELECT * FROM (SELECT c.uses as uses, " + this.columnsMain + ", " + this.tsvector + " "
+                + "FROM globalreference as g, foodstuffmeta as f LEFT JOIN (SELECT count(c.globalreference_id) as uses, c.globalreference_id as gid FROM mealcomponent c GROUP BY c.globalreference_id) as c ON f.globalreference_id = c.gid WHERE f.globalreference_id = g.id) as mainquery WHERE mainquery.document @@ to_tsquery(?)";
 
         for (int i = 0; i < searchWords.length - 1; i++) {
             sql += " AND mainquery.document @@ to_tsquery(?)";
@@ -174,95 +128,33 @@ public class FoodstuffDao {
         sql += " ORDER BY mainquery.uses DESC NULLS LAST";
 
         List<Foodstuff> items = db.queryAndCollect(sql, rs -> {
-            return new Foodstuff(rs.getString("name"),
-                    rs.getString("identifier"),
-                    rs.getString("producer"),
-                    null,
-                    rs.getFloat("calories"),
-                    rs.getFloat("carbohydrate"),
-                    rs.getFloat("fat"),
-                    rs.getFloat("protein"),
-                    rs.getInt("globalreferenceid"),
-                    rs.getInt("foodstuffmetaid"),
-                    0,
-                    null,
-                    null);
+            return new Foodstuff(rs, false);
         }, searchWords);
 
         return items;
     }
 
     public List<Foodstuff> findAll(User user) throws SQLException {
-        return db.queryAndCollect("SELECT g.name as name, "
-                + "g.identifier as identifier, "
-                + "g.type as type, "
-                + "f.producer as producer, "
-                + "f.calories as calories, "
-                + "f.carbohydrate as carbohydrate, "
-                + "f.fat as fat, "
-                + "f.protein as protein, "
-                + "i.location as location, "
-                + "i.date as date, "
-                + "i.expiration as expiration, "
-                + "g.id as globalreferenceid, "
-                + "i.id as id, "
-                + "f.id as foodstuffmetaid "
+        return db.queryAndCollect("SELECT " + this.columnsMain + ", " + this.columnsItem + " "
                 + "FROM globalreference as g, item as i, foodstuffmeta as f, permission as p "
                 + "WHERE g.id = i.globalreference_id "
                 + "AND f.globalreference_id = g.id "
                 + "AND p.item_id = i.id "
                 + "AND i.deleted = 'false' "
                 + "AND p.person_identifier = ? ", rs -> {
-                    return new Foodstuff(rs.getString("name"),
-                            rs.getString("identifier"),
-                            rs.getString("producer"),
-                            rs.getString("location"),
-                            rs.getInt("calories"),
-                            rs.getInt("carbohydrate"),
-                            rs.getInt("fat"),
-                            rs.getInt("protein"),
-                            rs.getInt("globalreferenceid"),
-                            rs.getInt("foodstuffmetaid"),
-                            rs.getInt("id"),
-                            rs.getTimestamp("expiration"),
-                            rs.getTimestamp("date"));
+                    return new Foodstuff(rs, true);
                 }, user.getId());
     }
 
     public Foodstuff findOne(User user, int id) throws SQLException {
-        List<Foodstuff> queryAndCollect = db.queryAndCollect("SELECT g.name as name, "
-                + "g.identifier as identifier, "
-                + "g.type as type, "
-                + "f.producer as producer, "
-                + "f.calories as calories, "
-                + "f.carbohydrate as carbohydrate, "
-                + "f.fat as fat, "
-                + "f.protein as protein, "
-                + "i.location as location, "
-                + "i.date as date, "
-                + "i.expiration as expiration, "
-                + "g.id as globalreferenceid, "
-                + "i.id as id, "
-                + "f.id as foodstuffmetaid "
+        List<Foodstuff> queryAndCollect = db.queryAndCollect("SELECT " + this.columnsMain + ", " + this.columnsItem + " "
                 + "FROM globalreference as g, item as i, foodstuffmeta as f, permission as p "
                 + "WHERE g.id = i.globalreference_id "
                 + "AND f.globalreference_id = g.id "
                 + "AND p.item_id = i.id "
                 + "AND i.deleted = 'false'"
                 + "AND p.person_identifier = ? AND i.id = ?", rs -> {
-                    return new Foodstuff(rs.getString("name"),
-                            rs.getString("identifier"),
-                            rs.getString("producer"),
-                            rs.getString("location"),
-                            rs.getFloat("calories"),
-                            rs.getFloat("carbohydrate"),
-                            rs.getFloat("fat"),
-                            rs.getFloat("protein"),
-                            rs.getInt("globalreferenceid"),
-                            rs.getInt("foodstuffmetaid"),
-                            rs.getInt("id"),
-                            rs.getTimestamp("expiration"),
-                            rs.getTimestamp("date"));
+                    return new Foodstuff(rs, true);
                 }, user.getId(), id);
 
         if (queryAndCollect.isEmpty()) {
@@ -273,32 +165,11 @@ public class FoodstuffDao {
     }
 
     public Foodstuff findOne(int id) throws SQLException {
-        List<Foodstuff> queryAndCollect = db.queryAndCollect("SELECT g.name as name, "
-                + "g.identifier as identifier, "
-                + "g.type as type, "
-                + "f.producer as producer, "
-                + "f.calories as calories, "
-                + "f.carbohydrate as carbohydrate, "
-                + "f.fat as fat, "
-                + "f.protein as protein, "
-                + "g.id as globalreferenceid, "
-                + "f.id as foodstuffmetaid "
+        List<Foodstuff> queryAndCollect = db.queryAndCollect("SELECT " + this.columnsMain + " "
                 + "FROM globalreference as g, foodstuffmeta as f "
                 + "WHERE f.globalreference_id = g.id "
                 + "AND g.id = ?", rs -> {
-                    return new Foodstuff(rs.getString("name"),
-                            rs.getString("identifier"),
-                            rs.getString("producer"),
-                            null,
-                            rs.getFloat("calories"),
-                            rs.getFloat("carbohydrate"),
-                            rs.getFloat("fat"),
-                            rs.getFloat("protein"),
-                            rs.getInt("globalreferenceid"),
-                            rs.getInt("foodstuffmetaid"),
-                            0,
-                            null,
-                            null);
+                    return new Foodstuff(rs, false);
                 }, id);
         if (queryAndCollect.isEmpty()) {
             return null;
@@ -308,21 +179,10 @@ public class FoodstuffDao {
     }
 
     public Foodstuff findOne(String name, String identifier) throws SQLException {
-        List<Foodstuff> queryAndCollect = db.queryAndCollect("SELECT g.name as name, g.identifier as identifier, g.type as type, f.producer as producer, f.calories as calories, f.carbohydrate as carbohydrate, f.fat as fat, f.protein as protein, g.id as globalreferenceid, f.id as foodstuffmetaid FROM globalreference as g, foodstuffmeta as f WHERE f.globalreference_id = g.id AND g.name = ? AND g.identifier = ?", rs -> {
-            return new Foodstuff(rs.getString("name"),
-                    rs.getString("identifier"),
-                    rs.getString("producer"),
-                    null,
-                    rs.getFloat("calories"),
-                    rs.getFloat("carbohydrate"),
-                    rs.getFloat("fat"),
-                    rs.getFloat("protein"),
-                    rs.getInt("globalreferenceid"),
-                    rs.getInt("foodstuffmetaid"),
-                    0,
-                    null,
-                    null);
-        }, name, identifier);
+        List<Foodstuff> queryAndCollect = db.queryAndCollect("SELECT " + this.columnsMain + " "
+                + "FROM globalreference as g, foodstuffmeta as f WHERE f.globalreference_id = g.id AND g.name = ? AND g.identifier = ?", rs -> {
+                    return new Foodstuff(rs, false);
+                }, name, identifier);
         if (queryAndCollect.isEmpty()) {
             return null;
         }
@@ -341,20 +201,7 @@ public class FoodstuffDao {
     }
 
     public List<Foodstuff> getExpiring(User user, int limit) throws SQLException {
-        return db.queryAndCollect("SELECT g.name as name, "
-                + "g.identifier as identifier, "
-                + "g.type as type, "
-                + "f.producer as producer, "
-                + "f.calories as calories, "
-                + "f.carbohydrate as carbohydrate, "
-                + "f.fat as fat, "
-                + "f.protein as protein, "
-                + "i.location as location, "
-                + "i.date as date, "
-                + "i.expiration as expiration, "
-                + "g.id as globalreferenceid, "
-                + "i.id as id, "
-                + "f.id as foodstuffmetaid "
+        return db.queryAndCollect("SELECT " + this.columnsMain + ", " + this.columnsItem + " "
                 + "FROM globalreference as g, item as i, foodstuffmeta as f, permission as p "
                 + "WHERE g.id = i.globalreference_id "
                 + "AND f.globalreference_id = g.id "
@@ -363,19 +210,7 @@ public class FoodstuffDao {
                 + "AND p.person_identifier = ? "
                 + "AND i.expiration > CURRENT_DATE "
                 + "ORDER BY i.expiration ASC LIMIT ?", rs -> {
-                    return new Foodstuff(rs.getString("name"),
-                            rs.getString("identifier"),
-                            rs.getString("producer"),
-                            rs.getString("location"),
-                            rs.getFloat("calories"),
-                            rs.getFloat("carbohydrate"),
-                            rs.getFloat("fat"),
-                            rs.getFloat("protein"),
-                            rs.getInt("globalreferenceid"),
-                            rs.getInt("foodstuffmetaid"),
-                            rs.getInt("id"),
-                            rs.getTimestamp("expiration"),
-                            rs.getTimestamp("date"));
+                    return new Foodstuff(rs, true);
                 }, user.getId(), limit);
     }
 
@@ -387,12 +222,21 @@ public class FoodstuffDao {
         }
     }
 
-    public void edit(User user, Foodstuff foodstuff) throws SQLException {
+    public void editPersonal(User user, Foodstuff foodstuff) throws SQLException {
+        if (db.canEdit(user.getId(), foodstuff.getId())) {
+            db.update("UPDATE item SET location = ?, expiration = ? WHERE id = ?", false,
+                    foodstuff.getLocation(), foodstuff.getExpiration(), foodstuff.getId());
+        } else {
+            throw new SecurityException("action is not authorized");
+        }
+    }
+
+    public void editGlobal(User user, Foodstuff foodstuff) throws SQLException {
         if (db.canEdit(user.getId(), foodstuff.getId())) {
             db.update("UPDATE globalreference SET name = ?, identifier = ?, type = ? WHERE item.id = ?", false,
                     foodstuff.getName(), foodstuff.getIdentifier(), "foodstuff", foodstuff.getId());
 
-            db.update("UPDATE foodstuffmeta SET producer = ?, calories = ?, carbohydrate = ?, fat = ?, protein = ? WHERE id = ?", false,
+            db.update("UPDATE foodstuffmeta SET producer = ?, calories = ?, carbohydrate = ?, fat = ?, protein = ?, iron = ?, sodium = ?, potassium = ?, calcium = ?, vitb12 = ?, vitc = ?, vitd = ? WHERE id = ?", false,
                     foodstuff.getProducer(), foodstuff.getCalories(), foodstuff.getCarbohydrate(), foodstuff.getFat(), foodstuff.getProtein(), foodstuff.getFoodstuffMetaId());
 
             db.update("UPDATE item SET location = ?, expiration = ? WHERE id = ?", false,
@@ -415,19 +259,7 @@ public class FoodstuffDao {
         String sql = "SELECT * FROM globalreference, foodstuffmeta WHERE globalreference.id = foodstuffmeta.id";
 
         List<Foodstuff> items = db.queryAndCollect(sql, rs -> {
-            return new Foodstuff(rs.getString("name"),
-                    rs.getString("identifier"),
-                    rs.getString("producer"),
-                    null,
-                    rs.getFloat("calories"),
-                    rs.getFloat("carbohydrate"),
-                    rs.getFloat("fat"),
-                    rs.getFloat("protein"),
-                    rs.getInt("id"),
-                    rs.getInt("id"),
-                    0,
-                    null,
-                    null);
+            return new Foodstuff(rs, false);
         });
 
         return items;
@@ -437,6 +269,6 @@ public class FoodstuffDao {
         int update = db.update("INSERT INTO globalreference(name, identifier, type) VALUES(?, ?, ?)", true,
                 foodstuff.getName(), foodstuff.getIdentifier(), "foodstuff");
         foodstuff.setGlobalReferenceId(update);
-        db.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein) VALUES(?, ?, ?, ?, ?, ?)", true, foodstuff.getGlobalReferenceId(), foodstuff.getProducer(), foodstuff.getCalories(), foodstuff.getCarbohydrate(), foodstuff.getFat(), foodstuff.getProtein());
+        db.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein, iron, sodium, potassium, calcium, vitb12, vitc, vitd) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", true, foodstuff.getGlobalReferenceId(), foodstuff.getProducer(), foodstuff.getCalories(), foodstuff.getCarbohydrate(), foodstuff.getFat(), foodstuff.getProtein(), foodstuff.getIron(), foodstuff.getSodium(), foodstuff.getPotassium(), foodstuff.getCalcium(), foodstuff.getVitB12(), foodstuff.getVitC(), foodstuff.getVitD());
     }
 }
