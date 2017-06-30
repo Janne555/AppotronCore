@@ -323,7 +323,7 @@ public class MealDaoTest {
         new MealComponentDao(database).store(mc);
         new MealComponentDao(database).store(mc2);
 
-        Container c = instance.dailyTotals(user, new Timestamp(zdt.withDayOfMonth(1).toInstant().toEpochMilli()), new Timestamp(zdt.withDayOfMonth(2).toInstant().toEpochMilli()));
+        Container c = instance.dailyTotals(user, new Timestamp(zdt.withDayOfMonth(1).toInstant().toEpochMilli()), new Timestamp(zdt.withDayOfMonth(2).toInstant().toEpochMilli())).get(0);
         
         assertEquals(c.getCalcium(), ((mass * mc.getFoodstuff().getCalcium()) + (mass * mc2.getFoodstuff().getCalcium())), 0.001);
         assertEquals(c.getCalories(), ((mass * mc.getFoodstuff().getCalories()) + (mass * mc2.getFoodstuff().getCalories())), 0.001);

@@ -7,13 +7,14 @@ package utilities;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 /**
  *
  * @author Janne
  */
 public class Container {
-
+    private Timestamp date;
     private float carbohydrate;
     private float fat;
     private float protein;
@@ -26,21 +27,23 @@ public class Container {
     private float vitC;
     private float vitD;
 
-    public Container(ResultSet rs, long days) throws SQLException {
-        this.carbohydrate = rs.getFloat("totalCarbohydrate") / days;
-        this.fat = rs.getFloat("totalFat") / days;
-        this.protein = rs.getFloat("totalProtein") / days;
-        this.calories = rs.getFloat("totalCalories") / days;
-        this.iron = rs.getFloat("totalIron") / days;
-        this.sodium = rs.getFloat("totalSodium") / days;
-        this.potassium = rs.getFloat("totalPotassium") / days;
-        this.calcium = rs.getFloat("totalCalcium") / days;
-        this.vitB12 = rs.getFloat("totalVitb12") / days;
-        this.vitC = rs.getFloat("totalVitc") / days;
-        this.vitD = rs.getFloat("totalVitd") / days;
+    public Container(ResultSet rs) throws SQLException {
+        this.carbohydrate = rs.getFloat("totalCarbohydrate");
+        this.fat = rs.getFloat("totalFat");
+        this.protein = rs.getFloat("totalProtein");
+        this.calories = rs.getFloat("totalCalories");
+        this.iron = rs.getFloat("totalIron");
+        this.sodium = rs.getFloat("totalSodium");
+        this.potassium = rs.getFloat("totalPotassium");
+        this.calcium = rs.getFloat("totalCalcium");
+        this.vitB12 = rs.getFloat("totalVitb12");
+        this.vitC = rs.getFloat("totalVitc");
+        this.vitD = rs.getFloat("totalVitd");
+        this.date = rs.getTimestamp("truncdate");
     }
 
-    public Container(float carbohydrate, float fat, float protein, float calories, float iron, float sodium, float potassium, float calcium, float vitB12, float vitC, float vitD) {
+    public Container(Timestamp date, float carbohydrate, float fat, float protein, float calories, float iron, float sodium, float potassium, float calcium, float vitB12, float vitC, float vitD) {
+        this.date = date;
         this.carbohydrate = carbohydrate;
         this.fat = fat;
         this.protein = protein;
@@ -52,6 +55,14 @@ public class Container {
         this.vitB12 = vitB12;
         this.vitC = vitC;
         this.vitD = vitD;
+    }
+
+    public Timestamp getDate() {
+        return date;
+    }
+
+    public void setDate(Timestamp date) {
+        this.date = date;
     }
 
     public float getCarbohydrate() {
