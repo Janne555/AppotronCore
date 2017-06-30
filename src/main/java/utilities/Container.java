@@ -5,57 +5,53 @@
  */
 package utilities;
 
-import java.time.LocalDate;
-import storables.mealdiary.Meal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  *
  * @author Janne
  */
 public class Container {
-    Integer ordinal;
-    LocalDate date;
-    float mass;
-    float carbohydrate;
-    float fat;
-    float protein;
-    float calories;
 
-    public Container(Integer ordinal, LocalDate date) {
-        this.ordinal = ordinal;
-        this.date = date;
-        this.mass = 0;
-        this.carbohydrate = 0;
-        this.fat = 0;
-        this.protein = 0;
-        this.calories = 0;
+    private float carbohydrate;
+    private float fat;
+    private float protein;
+    private float calories;
+    private float iron;
+    private float sodium;
+    private float potassium;
+    private float calcium;
+    private float vitB12;
+    private float vitC;
+    private float vitD;
+
+    public Container(ResultSet rs, long days) throws SQLException {
+        this.carbohydrate = rs.getFloat("totalCarbohydrate") / days;
+        this.fat = rs.getFloat("totalFat") / days;
+        this.protein = rs.getFloat("totalProtein") / days;
+        this.calories = rs.getFloat("totalCalories") / days;
+        this.iron = rs.getFloat("totalIron") / days;
+        this.sodium = rs.getFloat("totalSodium") / days;
+        this.potassium = rs.getFloat("totalPotassium") / days;
+        this.calcium = rs.getFloat("totalCalcium") / days;
+        this.vitB12 = rs.getFloat("totalVitb12") / days;
+        this.vitC = rs.getFloat("totalVitc") / days;
+        this.vitD = rs.getFloat("totalVitd") / days;
     }
 
-    public Container(LocalDate date, float carbohydrate, float fat, float protein, float calories) {
-        this.date = date;
+    public Container(float carbohydrate, float fat, float protein, float calories, float iron, float sodium, float potassium, float calcium, float vitB12, float vitC, float vitD) {
         this.carbohydrate = carbohydrate;
         this.fat = fat;
         this.protein = protein;
         this.calories = calories;
-    }
-
-
-    
-    public Container add(Meal meal) {
-        setMass(getMass() + meal.getMass());
-        setCalories(getCalories()+ meal.getTotalCalories());
-        setFat(getFat()+ meal.getTotalFat());
-        setCarbohydrate(getCarbohydrate()+ meal.getTotalCarbohydrate());
-        setProtein(getProtein() + meal.getTotalProtein());
-        return this;
-    }
-
-    public float getMass() {
-        return mass;
-    }
-
-    public void setMass(float mass) {
-        this.mass = mass;
+        this.iron = iron;
+        this.sodium = sodium;
+        this.potassium = potassium;
+        this.calcium = calcium;
+        this.vitB12 = vitB12;
+        this.vitC = vitC;
+        this.vitD = vitD;
     }
 
     public float getCarbohydrate() {
@@ -91,33 +87,73 @@ public class Container {
         return this;
     }
 
-    public Integer getOrdinal() {
-        return ordinal;
+    public float getIron() {
+        return iron;
     }
 
-    public void setOrdinal(Integer ordinal) {
-        this.ordinal = ordinal;
+    public void setIron(float iron) {
+        this.iron = iron;
     }
 
-    public String getDate() {
-        return date.getDayOfMonth() + "." + date.getMonthValue();
+    public float getSodium() {
+        return sodium;
     }
-    
-    public void setDate(LocalDate date) {
-        this.date = date;
+
+    public void setSodium(float sodium) {
+        this.sodium = sodium;
+    }
+
+    public float getPotassium() {
+        return potassium;
+    }
+
+    public void setPotassium(float potassium) {
+        this.potassium = potassium;
+    }
+
+    public float getCalcium() {
+        return calcium;
+    }
+
+    public void setCalcium(float calcium) {
+        this.calcium = calcium;
+    }
+
+    public float getVitB12() {
+        return vitB12;
+    }
+
+    public void setVitB12(float vitB12) {
+        this.vitB12 = vitB12;
+    }
+
+    public float getVitC() {
+        return vitC;
+    }
+
+    public void setVitC(float vitC) {
+        this.vitC = vitC;
+    }
+
+    public float getVitD() {
+        return vitD;
+    }
+
+    public void setVitD(float vitD) {
+        this.vitD = vitD;
     }
 
     public void round() {
-        setMass(Math.round(getMass()));
         setCalories(Math.round(getCalories()));
         setCarbohydrate(Math.round(getCarbohydrate()));
-        setFat(Math.round(getMass()));
+        setFat(Math.round(getFat()));
         setProtein(Math.round(getProtein()));
-    }
-    
-    
-    @Override
-    public String toString() {
-        return "calories: " + getCalories() + ", carbohydrate: " + getCarbohydrate() + ", fat: " + getFat() + ", protein: " + getProtein();
+        setIron(Math.round(getIron()));
+        setSodium(Math.round(getSodium()));
+        setPotassium(Math.round(getPotassium()));
+        setCalcium(Math.round(getCalcium()));
+        setVitB12(Math.round(getVitB12()));
+        setVitC(Math.round(getVitC()));
+        setVitD(Math.round(getVitD()));
     }
 }

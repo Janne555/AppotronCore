@@ -5,6 +5,7 @@
  */
 package daos.mealdiary;
 
+import daos.FoodstuffDao;
 import daos.UserDao;
 import database.Database;
 import java.sql.Connection;
@@ -88,11 +89,11 @@ public class MealDaoTest {
             database.update("ALTER TABLE foodstuffmeta ADD CONSTRAINT foodstuffmeta_fk0 FOREIGN KEY (globalreference_id) REFERENCES globalreference(id)", false);
 
             System.out.println("create example food items");
-            database.update("INSERT INTO globalreference(name, identifier, type) VALUES('peruna', 'p3run4', 'foodstuff')", false);
-            database.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein) VALUES(1, 'maajussi', 0.89, 0.34, 0.05, 0.00)", false);
+            database.update("INSERT INTO globalreference(name, identifier, type) VALUES('peruna', 'p3run4', 'foodstuff')", true);
+            database.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein, iron, sodium, potassium, calcium, vitb12, vitc, vitd) VALUES(1, 'maajussi', 1.35, 0.181, 0.022, 0.054, 0.008, 2.408, 3.987, 0.083, 0.001, 0.05, 0.003)", false);
 
             database.update("INSERT INTO globalreference(name, identifier, type) VALUES('pulla', 'pull4', 'foodstuff')", false);
-            database.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein) VALUES(2, 'leipuri', 4.12, 0.45, 0.24, 0.12)", false);
+            database.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein, iron, sodium, potassium, calcium, vitb12, vitc, vitd) VALUES(2, 'leipuri', 3.26, 0.456, 0.124, 0.068, 0.006, 1.322, 1.028, 0.161, 0.001, 0.001, 0.007)", false);
 
             database.update("INSERT INTO globalreference(name, identifier, type) VALUES('kinkku', 'k1nkku', 'foodstuff')", false);
             database.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein) VALUES(3, 'teurastaja', 2.14, 0.05, 0.21, 0.64)", false);
@@ -312,18 +313,29 @@ public class MealDaoTest {
     @Test
     public void testDailyTotals() throws Exception {
         System.out.println("dailyTotals");
-        User user = new User("testitar", "testi", null, null, null);
-        Timestamp from = new Timestamp(zdt.withHour(0).minusDays(1).toInstant().toEpochMilli());
-        Timestamp to = new Timestamp(zdt.withHour(23).withMinute(59).toInstant().toEpochMilli());
         MealDao instance = new MealDao(database);
-        List<Container> expResult = null;
-        List<Container> result = instance.dailyTotals(user, from, to);
+        User user = new User("testitar", "testi", null, null, null);
+        Meal meal = new Meal(0, user, new Timestamp(zdt.withDayOfMonth(1).toInstant().toEpochMilli()), null);
+        meal = instance.store(meal);
+        float mass = (float) 43.53;
+        MealComponent mc = new MealComponent(0, meal.getId(), mass, new FoodstuffDao(database).findOne(2));
+        MealComponent mc2 = new MealComponent(0, meal.getId(), mass, new FoodstuffDao(database).findOne(1));
+        new MealComponentDao(database).store(mc);
+        new MealComponentDao(database).store(mc2);
+
+        Container c = instance.dailyTotals(user, new Timestamp(zdt.withDayOfMonth(1).toInstant().toEpochMilli()), new Timestamp(zdt.withDayOfMonth(2).toInstant().toEpochMilli()));
         
-        for (Container c : result) {
-            System.out.println(c);
-        }
-        
-        assertEquals(1, 1);
+        assertEquals(c.getCalcium(), ((mass * mc.getFoodstuff().getCalcium()) + (mass * mc2.getFoodstuff().getCalcium())), 0.001);
+        assertEquals(c.getCalories(), ((mass * mc.getFoodstuff().getCalories()) + (mass * mc2.getFoodstuff().getCalories())), 0.001);
+        assertEquals(c.getCarbohydrate(), ((mass * mc.getFoodstuff().getCarbohydrate()) + (mass * mc2.getFoodstuff().getCarbohydrate())), 0.001);
+        assertEquals(c.getFat(), ((mass * mc.getFoodstuff().getFat()) + (mass * mc2.getFoodstuff().getFat())), 0.001);
+        assertEquals(c.getIron(), ((mass * mc.getFoodstuff().getIron()) + (mass * mc2.getFoodstuff().getIron())), 0.001);
+        assertEquals(c.getPotassium(), ((mass * mc.getFoodstuff().getPotassium()) + (mass * mc2.getFoodstuff().getPotassium())), 0.001);
+        assertEquals(c.getProtein(), ((mass * mc.getFoodstuff().getProtein()) + (mass * mc2.getFoodstuff().getProtein())), 0.001);
+        assertEquals(c.getSodium(), ((mass * mc.getFoodstuff().getSodium()) + (mass * mc2.getFoodstuff().getSodium())), 0.001);
+        assertEquals(c.getVitB12(), ((mass * mc.getFoodstuff().getVitB12()) + (mass * mc2.getFoodstuff().getVitB12())), 0.001);
+        assertEquals(c.getVitC(), ((mass * mc.getFoodstuff().getVitC()) + (mass * mc2.getFoodstuff().getVitC())), 0.001);
+        assertEquals(c.getVitD(), ((mass * mc.getFoodstuff().getVitD()) + (mass * mc2.getFoodstuff().getVitD())), 0.001);
     }
 
     /**

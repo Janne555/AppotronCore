@@ -271,4 +271,10 @@ public class FoodstuffDao {
         foodstuff.setGlobalReferenceId(update);
         db.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein, iron, sodium, potassium, calcium, vitb12, vitc, vitd) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", true, foodstuff.getGlobalReferenceId(), foodstuff.getProducer(), foodstuff.getCalories(), foodstuff.getCarbohydrate(), foodstuff.getFat(), foodstuff.getProtein(), foodstuff.getIron(), foodstuff.getSodium(), foodstuff.getPotassium(), foodstuff.getCalcium(), foodstuff.getVitB12(), foodstuff.getVitC(), foodstuff.getVitD());
     }
+    
+    public List<String> findProducers() throws SQLException {
+        return db.queryAndCollect("SELECT DISTINCT ON (producer) producer FROM foodstuffmeta ORDER BY producer ASC", rs -> {
+            return rs.getString("producer");
+        });
+    }
 }

@@ -89,7 +89,7 @@ public class FoodstuffDaoTest {
             database.update("ALTER TABLE permission ADD CONSTRAINT permission_fk1 FOREIGN KEY (item_id) REFERENCES item(id)", false);
 
             System.out.println("create example food items");
-            int update = database.update("INSERT INTO globalreference(name, identifier, type) VALUES('peruna', 'p3run4', 'foodstuff')", true);
+            database.update("INSERT INTO globalreference(name, identifier, type) VALUES('peruna', 'p3run4', 'foodstuff')", true);
             database.update("INSERT INTO foodstuffmeta(globalreference_id, producer, calories, carbohydrate, fat, protein, iron, sodium, potassium, calcium, vitb12, vitc, vitd) VALUES(1, 'maajussi', 1.35, 0.181, 0.022, 0.054, 0.008, 2.408, 3.987, 0.083, 0.001, 0.05, 0.003)", false);
 
             database.update("INSERT INTO globalreference(name, identifier, type) VALUES('pulla', 'pull4', 'foodstuff')", false);
@@ -399,6 +399,13 @@ public class FoodstuffDaoTest {
 //        instance.storeGlobal(foodstuff);
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
+    }
+    
+    @Test
+    public void testFindProducers() throws Exception {
+        System.out.println("findProducers");
+        List<String> list = instance.findProducers();
+        assertEquals(true, list.contains("maajussi"));
     }
 
 }

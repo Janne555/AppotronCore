@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 import database.Database;
+import java.time.temporal.ChronoUnit;
 import storables.mealdiary.Meal;
 import storables.mealdiary.MealComponent;
 import storables.User;
@@ -89,23 +90,24 @@ public class MealDao {
         db.update("DELETE FROM meal WHERE id = ? AND person_identifier = ?", false, id, user.getId());
     }
 
-    public List<Container> dailyTotals(User user, Timestamp from, Timestamp to) throws SQLException {
-        String sql = "SELECT SUM(totalcalories) as totalcalories, SUM(totalcarbohydrate) as totalcarbohydrate, SUM(totalfat) as totalfat, SUM(totalprotein) as totalprotein, DATE_TRUNC('day', meal.date) as truncdate FROM (select *, (mc.mass * fm.calories) as totalCalories, (mc.mass * fm.carbohydrate) as totalCarbohydrate, (mc.mass * fm.protein) as totalProtein, (mc.mass * fm.fat) as totalFat from mealcomponent mc, foodstuffmeta fm WHERE mc.globalreference_id = fm.globalreference_id) as foo, person, meal WHERE meal.id = meal_id AND meal.person_identifier = person.identifier AND person.identifier = ? AND meal.date >= ? AND meal.date <= ? GROUP BY truncdate ORDER BY truncdate ASC";
+    public Container dailyTotals(User user, Timestamp from, Timestamp to) throws SQLException {
+        long days = from.toLocalDateTime().toLocalDate().until(to.toLocalDateTime().toLocalDate(), ChronoUnit.DAYS);
+        String sql = "SELECT SUM(totalcalories) as totalcalories, SUM(totalcarbohydrate) as totalcarbohydrate, SUM(totalfat) as totalfat, SUM(totalprotein) as totalprotein, SUM(totalIron) as totalIron, SUM(totalSodium) as totalSodium, SUM(totalPotassium) as totalPotassium, SUM(totalCalcium) as totalCalcium, SUM(totalVitb12) as totalVitb12, SUM(totalVitc) as totalVitc, SUM(totalVitd) as totalVitd FROM (SELECT *, (mc.mass * fm.calories) as totalCalories, (mc.mass * fm.carbohydrate) as totalCarbohydrate, (mc.mass * fm.protein) as totalProtein, (mc.mass * fm.fat) as totalFat, (mc.mass * fm.iron) as totalIron, (mc.mass * fm.sodium) as totalSodium, (mc.mass * fm.potassium) as totalPotassium, (mc.mass * fm.calcium) as totalCalcium, (mc.mass * fm.vitb12) as totalVitb12, (mc.mass * fm.vitc) as totalVitc, (mc.mass * fm.vitd) as totalVitd FROM mealcomponent mc, foodstuffmeta fm, meal, person WHERE mc.globalreference_id = fm.globalreference_id AND meal.id = mc.meal_id AND meal.date >= ? AND meal.date <= ? AND meal.person_identifier = person.identifier AND person.identifier = ?) as foo ";
 
         return db.queryAndCollect(sql, rs -> {
-            return new Container(rs.getTimestamp("truncdate").toLocalDateTime().toLocalDate(), rs.getFloat("totalcarbohydrate"), rs.getFloat("totalfat"), rs.getFloat("totalprotein"), rs.getFloat("totalcalories"));
-        }, user.getId(), from, to);
+            return new Container(rs, days);
+        }, from, to, user.getId()).get(0);
     }
 
     public Meal findLatest(User user) throws SQLException {
         List<Meal> queryAndCollect = db.queryAndCollect("SELECT * FROM Meal WHERE deleted = 'false' AND person_identifier = ? ORDER BY date DESC LIMIT 1", rs -> {
             return new Meal(rs.getInt("id"), user, rs.getTimestamp("date"), mecDao.findByMealId(rs.getInt("id")));
         }, user.getId());
-        
+
         if (queryAndCollect.isEmpty()) {
             return null;
         }
-        
+
         return queryAndCollect.get(0);
     }
 
