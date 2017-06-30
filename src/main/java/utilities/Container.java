@@ -57,8 +57,8 @@ public class Container {
         this.vitD = vitD;
     }
 
-    public Timestamp getDate() {
-        return date;
+    public String getDate() {
+        return date.toLocalDateTime().getDayOfMonth() + "." + date.toLocalDateTime().getMonthValue();
     }
 
     public void setDate(Timestamp date) {
