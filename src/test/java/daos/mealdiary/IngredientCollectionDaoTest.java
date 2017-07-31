@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -21,7 +22,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import storables.Foodstuff;
 import storables.User;
+import storables.mealdiary.Ingredient;
 import storables.mealdiary.IngredientCollection;
 
 /**
@@ -184,8 +187,24 @@ public class IngredientCollectionDaoTest {
         System.out.println("findOne");
         IngredientCollection ingredientCollection = new IngredientCollection(0, "test", 100, new Timestamp(System.currentTimeMillis()), user, null);
         IngredientCollection response = instance.store(ingredientCollection);
+        Foodstuff f = new FoodstuffDao(database).findOne(1);
+        Ingredient ing = new Ingredient(0, 1, response.getId(), 100, f);
+        new IngredientDao(database).store(ing);
         IngredientCollection result = instance.findOne(response.getId(), user);
         assertEquals("test", result.getName());
+        assertEquals(1, result.getIngredients().size());
+
+        assertEquals(1.35, result.getCalories(), 0.001);
+        assertEquals(0.181, result.getCarbohydrate(), 0.001);
+        assertEquals(0.022, result.getFat(), 0.001);
+        assertEquals(0.054, result.getProtein(), 0.001);
+        assertEquals(0.008, result.getIron(), 0.001);
+        assertEquals(2.408, result.getSodium(), 0.001);
+        assertEquals(3.987, result.getPotassium(), 0.001);
+        assertEquals(0.083, result.getCalcium(), 0.001);
+        assertEquals(f.getVitB12(), result.getVitB12(), 0.001);
+        assertEquals(0.05, result.getVitC(), 0.001);
+        assertEquals(0.003, result.getVitD(), 0.001);
     }
 
     /**

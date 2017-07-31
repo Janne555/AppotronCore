@@ -12,14 +12,14 @@ import utilities.Incrementer;
  *
  * @author Janne
  */
-public class BugReport {
+public class Feedback {
     private String userId;
     private User user;
     private String subject;
     private String description;
     private Timestamp date;
 
-    public BugReport(String userId, User user, String subject, String description, Timestamp date) {
+    public Feedback(String userId, User user, String subject, String description, Timestamp date) {
         this.userId = userId;
         this.user = user;
         this.subject = subject;

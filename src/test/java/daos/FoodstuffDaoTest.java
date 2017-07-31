@@ -217,7 +217,6 @@ public class FoodstuffDaoTest {
 //        List<Foodstuff> expResult = null;
 //        List<Foodstuff> result = instance.searchGlobal(sortPopular, searchWords);
 //        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
     }
 
@@ -370,7 +369,6 @@ public class FoodstuffDaoTest {
 //        List<Foodstuff> expResult = null;
 //        List<Foodstuff> result = instance.mostPopular(user, limit);
 //        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
     }
 
@@ -384,7 +382,6 @@ public class FoodstuffDaoTest {
 //        List<Foodstuff> expResult = null;
 //        List<Foodstuff> result = instance.globalDump();
 //        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
     }
 
@@ -397,7 +394,6 @@ public class FoodstuffDaoTest {
 //        Foodstuff foodstuff = null;
 //        FoodstuffDao instance = null;
 //        instance.storeGlobal(foodstuff);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
     }
     

@@ -50,7 +50,6 @@ public class WeekdayPrimeTest {
 //        WeekdayPrime[] expResult = null;
 //        WeekdayPrime[] result = WeekdayPrime.values();
 //        assertArrayEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
     }
 
@@ -64,7 +63,6 @@ public class WeekdayPrimeTest {
 //        WeekdayPrime expResult = null;
 //        WeekdayPrime result = WeekdayPrime.valueOf(name);
 //        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
     }
 
@@ -78,7 +76,6 @@ public class WeekdayPrimeTest {
 //        int expResult = 0;
 //        int result = instance.getPrime();
 //        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
     }
 
@@ -92,7 +89,6 @@ public class WeekdayPrimeTest {
 //        DayOfWeek expResult = null;
 //        DayOfWeek result = instance.getDayOfWeek();
 //        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
     }
 
@@ -119,7 +115,6 @@ public class WeekdayPrimeTest {
 //        }
 //        
 //        assertEquals(true, result);
-        // TODO review the generated test code and remove the default call to fail.
     }
 
 }

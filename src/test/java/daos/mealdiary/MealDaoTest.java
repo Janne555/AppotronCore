@@ -173,8 +173,9 @@ public class MealDaoTest {
     }
 
     @After
-    public void tearDown() {
-
+    public void tearDown() throws SQLException {
+        database.update("DELETE FROM mealcomponent WHERE meal_id > 2", false);
+        database.update("DELETE FROM meal WHERE id > 2", false);
     }
 
     /**
@@ -324,7 +325,7 @@ public class MealDaoTest {
         new MealComponentDao(database).store(mc2);
 
         Container c = instance.dailyTotals(user, new Timestamp(zdt.withDayOfMonth(1).toInstant().toEpochMilli()), new Timestamp(zdt.withDayOfMonth(2).toInstant().toEpochMilli())).get(0);
-        
+
         assertEquals(c.getCalcium(), ((mass * mc.getFoodstuff().getCalcium()) + (mass * mc2.getFoodstuff().getCalcium())), 0.001);
         assertEquals(c.getCalories(), ((mass * mc.getFoodstuff().getCalories()) + (mass * mc2.getFoodstuff().getCalories())), 0.001);
         assertEquals(c.getCarbohydrate(), ((mass * mc.getFoodstuff().getCarbohydrate()) + (mass * mc2.getFoodstuff().getCarbohydrate())), 0.001);
@@ -361,8 +362,56 @@ public class MealDaoTest {
 //        Meal newMeal = null;
 //        MealDao instance = null;
 //        instance.update(user, newMeal);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
+    }
+
+    @Test
+    public void testAverages() throws Exception {
+        System.out.println("dailyTotals");
+        MealDao instance = new MealDao(database);
+        User user = new User("testitar", "testi", null, null, null);
+
+        Meal meal1 = new Meal(0, user, new Timestamp(zdt.withDayOfMonth(1).toInstant().toEpochMilli()), null);
+        meal1 = instance.store(meal1);
+        float mass1 = (float) 43.53;
+        MealComponent mc1 = new MealComponent(0, meal1.getId(), mass1, new FoodstuffDao(database).findOne(2));
+        MealComponent mc2 = new MealComponent(0, meal1.getId(), mass1, new FoodstuffDao(database).findOne(1));
+        new MealComponentDao(database).store(mc1);
+        new MealComponentDao(database).store(mc2);
+
+        Meal meal2 = new Meal(0, user, new Timestamp(zdt.withDayOfMonth(2).toInstant().toEpochMilli()), null);
+        meal2 = instance.store(meal2);
+        float mass2 = (float) 54.68;
+        MealComponent mc3 = new MealComponent(0, meal2.getId(), mass2, new FoodstuffDao(database).findOne(2));
+        MealComponent mc4 = new MealComponent(0, meal2.getId(), mass2, new FoodstuffDao(database).findOne(1));
+        new MealComponentDao(database).store(mc3);
+        new MealComponentDao(database).store(mc4);
+
+        Container c = instance.averages(user, new Timestamp(zdt.withDayOfMonth(1).toInstant().toEpochMilli()), new Timestamp(zdt.withDayOfMonth(2).toInstant().toEpochMilli()));
+
+        float calories = (mc1.getFoodstuff().getCalories() * mass1 + mc2.getFoodstuff().getCalories() * mass1 + mc3.getFoodstuff().getCalories() * mass2 + mc4.getFoodstuff().getCalories() * mass2) / 2;
+        float carbohydrate = (mc1.getFoodstuff().getCarbohydrate() * mass1 + mc2.getFoodstuff().getCarbohydrate() * mass1 + mc3.getFoodstuff().getCarbohydrate() * mass2 + mc4.getFoodstuff().getCarbohydrate() * mass2) / 2;
+        float fat = (mc1.getFoodstuff().getFat() * mass1 + mc2.getFoodstuff().getFat() * mass1 + mc3.getFoodstuff().getFat() * mass2 + mc4.getFoodstuff().getFat() * mass2) / 2;
+        float protein = (mc1.getFoodstuff().getProtein() * mass1 + mc2.getFoodstuff().getProtein() * mass1 + mc3.getFoodstuff().getProtein() * mass2 + mc4.getFoodstuff().getProtein() * mass2) / 2;
+        float iron = (mc1.getFoodstuff().getIron() * mass1 + mc2.getFoodstuff().getIron() * mass1 + mc3.getFoodstuff().getIron() * mass2 + mc4.getFoodstuff().getIron() * mass2) / 2;
+        float sodium = (mc1.getFoodstuff().getSodium() * mass1 + mc2.getFoodstuff().getSodium() * mass1 + mc3.getFoodstuff().getSodium() * mass2 + mc4.getFoodstuff().getSodium() * mass2) / 2;
+        float potassium = (mc1.getFoodstuff().getPotassium() * mass1 + mc2.getFoodstuff().getPotassium() * mass1 + mc3.getFoodstuff().getPotassium() * mass2 + mc4.getFoodstuff().getPotassium() * mass2) / 2;
+        float calcium = (mc1.getFoodstuff().getCalcium() * mass1 + mc2.getFoodstuff().getCalcium() * mass1 + mc3.getFoodstuff().getCalcium() * mass2 + mc4.getFoodstuff().getCalcium() * mass2) / 2;
+        float vitb12 = (mc1.getFoodstuff().getVitB12() * mass1 + mc2.getFoodstuff().getVitB12() * mass1 + mc3.getFoodstuff().getVitB12() * mass2 + mc4.getFoodstuff().getVitB12() * mass2) / 2;
+        float vitc = (mc1.getFoodstuff().getVitC() * mass1 + mc2.getFoodstuff().getVitC() * mass1 + mc3.getFoodstuff().getVitC() * mass2 + mc4.getFoodstuff().getVitC() * mass2) / 2;
+        float vitd = (mc1.getFoodstuff().getVitD() * mass1 + mc2.getFoodstuff().getVitD() * mass1 + mc3.getFoodstuff().getVitD() * mass2 + mc4.getFoodstuff().getVitD() * mass2) / 2;
+
+        assertEquals(calories, c.getCalories(), 0.001);
+        assertEquals(carbohydrate, c.getCarbohydrate(), 0.001);
+        assertEquals(fat, c.getFat(), 0.001);
+        assertEquals(protein, c.getProtein(), 0.001);
+        assertEquals(iron, c.getIron(), 0.001);
+        assertEquals(sodium, c.getSodium(), 0.001);
+        assertEquals(potassium, c.getPotassium(), 0.001);
+        assertEquals(calcium, c.getCalcium(), 0.001);
+        assertEquals(vitb12, c.getVitB12(), 0.001);
+        assertEquals(vitc, c.getVitC(), 0.001);
+        assertEquals(vitd, c.getVitD(), 0.001);
     }
 
 }

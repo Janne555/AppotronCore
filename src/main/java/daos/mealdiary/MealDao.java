@@ -91,11 +91,25 @@ public class MealDao {
     }
 
     public List<Container> dailyTotals(User user, Timestamp from, Timestamp to) throws SQLException {
-        String sql = "SELECT SUM(totalcalories) as totalcalories, SUM(totalcarbohydrate) as totalcarbohydrate, SUM(totalfat) as totalfat, SUM(totalprotein) as totalprotein, DATE_TRUNC('day', meal.date) as truncdate, SUM(totalIron) as totalIron, SUM(totalSodium) as totalSodium, SUM(totalPotassium) as totalPotassium, SUM(totalCalcium) as totalCalcium, SUM(totalVitb12) as totalVitb12, SUM(totalVitc) as totalVitc, SUM(totalVitd) as totalVitd FROM (SELECT *, (mc.mass * fm.calories) as totalCalories, (mc.mass * fm.carbohydrate) as totalCarbohydrate, (mc.mass * fm.protein) as totalProtein, (mc.mass * fm.fat) as totalFat, (mc.mass * fm.iron) as totalIron, (mc.mass * fm.sodium) as totalSodium, (mc.mass * fm.potassium) as totalPotassium, (mc.mass * fm.calcium) as totalCalcium, (mc.mass * fm.vitb12) as totalVitb12, (mc.mass * fm.vitc) as totalVitc, (mc.mass * fm.vitd) as totalVitd FROM mealcomponent mc, foodstuffmeta fm WHERE mc.globalreference_id = fm.globalreference_id) as foo, person, meal WHERE meal.id = meal_id AND meal.person_identifier = person.identifier AND person.identifier = ? AND meal.date >= ? AND meal.date <= ? GROUP BY truncdate ORDER BY truncdate ASC";
-        
+        String sql = "SELECT SUM(calories_) as calories, SUM(carbohydrate_) as carbohydrate, SUM(fat_) as fat, SUM(protein_) as protein, DATE_TRUNC('day', meal.date) as truncdate, SUM(iron_) as iron, SUM(sodium_) as sodium, SUM(potassium_) as potassium, SUM(calcium_) as calcium, SUM(vitb12_) as vitb12, SUM(vitc_) as vitc, SUM(vitd_) as vitd FROM (SELECT *, (mc.mass * fm.calories) as calories_, (mc.mass * fm.carbohydrate) as carbohydrate_, (mc.mass * fm.protein) as protein_, (mc.mass * fm.fat) as fat_, (mc.mass * fm.iron) as iron_, (mc.mass * fm.sodium) as sodium_, (mc.mass * fm.potassium) as potassium_, (mc.mass * fm.calcium) as calcium_, (mc.mass * fm.vitb12) as vitb12_, (mc.mass * fm.vitc) as vitc_, (mc.mass * fm.vitd) as vitd_ FROM mealcomponent mc, foodstuffmeta fm WHERE mc.globalreference_id = fm.globalreference_id) as foo, person, meal WHERE meal.id = meal_id AND meal.person_identifier = person.identifier AND person.identifier = ? AND meal.date >= ? AND meal.date <= ? GROUP BY truncdate ORDER BY truncdate ASC";
+
         return db.queryAndCollect(sql, rs -> {
             return new Container(rs);
         }, user.getId(), from, to);
+    }
+
+    public Container averages(User user, Timestamp from, Timestamp to) throws SQLException {
+        String sql = "SELECT current_date as truncdate, (q.calories / q.days) as calories, (q.carbohydrate / q.days) as carbohydrate, (q.fat / q.days) as fat, (q.protein / q.days) as protein, (q.iron / q.days) as iron, (q.sodium / q.days) as sodium, (q.potassium / q.days) as potassium, (q.calcium / q.days) as calcium, (q.vitb12 / q.days) as vitb12, (q.vitc / q.days) as vitc, (q.vitd / q.days) as vitd FROM (SELECT SUM(f.calories * mc.mass) as calories, SUM(f.carbohydrate * mc.mass) as carbohydrate, SUM(f.fat * mc.mass) as fat, SUM(f.protein * mc.mass) as protein, SUM(f.iron * mc.mass) iron, SUM(f.Sodium * mc.mass) as sodium, SUM(potassium * mc.mass) as potassium, SUM(calcium * mc.mass) as calcium, SUM(vitb12 * mc.mass) as vitb12, SUM(vitc * mc.mass) as vitc, SUM(vitd * mc.mass) as vitd, (?::date - ?::date + 1) as days FROM foodstuffmeta as f, meal as m, mealcomponent as mc, person as p WHERE f.globalreference_id = mc.globalreference_id AND mc.meal_id = m.id AND m.person_identifier = p.identifier AND m.date >= ? AND m.date <= ?) as q";
+
+        List<Container> queryAndCollect = db.queryAndCollect(sql, rs -> {
+            return new Container(rs);
+        }, to, from, from, to);
+
+        if (queryAndCollect.isEmpty()) {
+            return null;
+        }
+        
+        return queryAndCollect.get(0);
     }
 
     public Meal findLatest(User user) throws SQLException {

@@ -84,10 +84,82 @@ public class MealComponent {
         return Math.round(getMass() * getFoodstuff().getProtein());
     }
 
+    public int getTotalIronRounded() {
+        return Math.round(getMass() * getFoodstuff().getIron());
+    }
+
+    public int getTotalSodiumRounded() {
+        return Math.round(getMass() * getFoodstuff().getSodium());
+    }
+
+    public int getTotalPotassiumRounded() {
+        return Math.round(getMass() * getFoodstuff().getPotassium());
+    }
+
+    public int getTotalCalciumRounded() {
+        return Math.round(getMass() * getFoodstuff().getCalcium());
+    }
+
+    public int getTotalVitB12Rounded() {
+        return Math.round(getMass() * getFoodstuff().getVitB12());
+    }
+
+    public int getTotalVitCRounded() {
+        return Math.round(getMass() * getFoodstuff().getVitC());
+    }
+
+    public int getTotalVitDRounded() {
+        return Math.round(getMass() * getFoodstuff().getVitD());
+    }
+
+    public float getCalories() {
+        return getMass() * getFoodstuff().getCalories();
+    }
+
+    public float getCarbohydrate() {
+        return getMass() * getFoodstuff().getCarbohydrate();
+    }
+
+    public float getFat() {
+        return getMass() * getFoodstuff().getFat();
+    }
+
+    public float getProtein() {
+        return getMass() * getFoodstuff().getProtein();
+    }
+
+    public float getIron() {
+        return getMass() * getFoodstuff().getIron();
+    }
+
+    public float getSodium() {
+        return getMass() * getFoodstuff().getSodium();
+    }
+
+    public float getPotassium() {
+        return getMass() * getFoodstuff().getPotassium();
+    }
+
+    public float getCalcium() {
+        return getMass() * getFoodstuff().getCalcium();
+    }
+
+    public float getVitB12() {
+        return getMass() * getFoodstuff().getVitB12();
+    }
+
+    public float getVitC() {
+        return getMass() * getFoodstuff().getVitC();
+    }
+
+    public float getVitD() {
+        return getMass() * getFoodstuff().getVitD();
+    }
+
     public int getGlobalReferenceId() {
         return getFoodstuff().getGlobalReferenceId();
     }
-    
+
     @Override
     public String toString() {
         return "ID:" + getId() + ";"

@@ -28,17 +28,17 @@ public class Container {
     private float vitD;
 
     public Container(ResultSet rs) throws SQLException {
-        this.carbohydrate = rs.getFloat("totalCarbohydrate");
-        this.fat = rs.getFloat("totalFat");
-        this.protein = rs.getFloat("totalProtein");
-        this.calories = rs.getFloat("totalCalories");
-        this.iron = rs.getFloat("totalIron");
-        this.sodium = rs.getFloat("totalSodium");
-        this.potassium = rs.getFloat("totalPotassium");
-        this.calcium = rs.getFloat("totalCalcium");
-        this.vitB12 = rs.getFloat("totalVitb12");
-        this.vitC = rs.getFloat("totalVitc");
-        this.vitD = rs.getFloat("totalVitd");
+        this.carbohydrate = rs.getFloat("carbohydrate");
+        this.fat = rs.getFloat("fat");
+        this.protein = rs.getFloat("protein");
+        this.calories = rs.getFloat("calories");
+        this.iron = rs.getFloat("iron");
+        this.sodium = rs.getFloat("sodium");
+        this.potassium = rs.getFloat("potassium");
+        this.calcium = rs.getFloat("calcium");
+        this.vitB12 = rs.getFloat("vitb12");
+        this.vitC = rs.getFloat("vitc");
+        this.vitD = rs.getFloat("vitd");
         this.date = rs.getTimestamp("truncdate");
     }
 
